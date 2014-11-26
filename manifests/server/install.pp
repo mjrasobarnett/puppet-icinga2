@@ -21,6 +21,7 @@ class icinga2::server::install inherits icinga2::server {
   #Here, we're setting up the package repos first, then installing the packages:
   class{'icinga2::server::install::repos':} ~>
   class{'icinga2::server::install::packages':} ~>
+  class{'icinga2::server::install::db':} ->
   class{'icinga2::server::install::execs':} ->
   Class['icinga2::server::install']
 
@@ -129,6 +130,23 @@ class icinga2::server::install::packages inherits icinga2::server {
 
 }
 
+class icinga2::server::install::db inherits icinga2::server {
+
+  include icinga2::server
+
+  #Configure database
+  case $server_db_type {
+    'pgsql': {
+      #Create the Postgres DB:
+      icinga2::server::pgsql_db { $db_name :
+        db_user        => $db_user,
+        db_password    => $db_password,
+      }
+    }
+    default: { fail("${server_db_type} is not supported!") }
+  }
+}
+
 #This class contains exec resources
 class icinga2::server::install::execs inherits icinga2::server {
 
@@ -158,11 +176,11 @@ class icinga2::server::install::execs inherits icinga2::server {
     'pgsql': {
       #Load the Postgres DB schema:
       exec { 'postgres_schema_load':
-        user    => 'root',
-        path    => '/usr/bin:/usr/sbin:/bin/:/sbin',
-        command => "su - postgres -c 'export PGPASSWORD='\\''${db_password}'\\'' && psql -U ${db_user} -h localhost -d ${db_name} < ${server_db_schema_path}' && export PGPASSWORD='' && touch /etc/icinga2/postgres_schema_loaded.txt",
-        creates => '/etc/icinga2/postgres_schema_loaded.txt',
-        require => Class['icinga2::server::install::packages'],
+        user        => 'root',
+        path        => '/usr/bin:/usr/sbin:/bin/:/sbin',
+        command     => "su - postgres -c 'export PGPASSWORD='\\''${db_password}'\\'' && psql -U ${db_user} -h localhost -d ${db_name} < ${server_db_schema_path}' && export PGPASSWORD='' && touch /etc/icinga2/postgres_schema_loaded.txt",
+        creates     => '/etc/icinga2/postgres_schema_loaded.txt',
+        require     => Class['icinga2::server::install::packages'],
       }
       #Enable the Postgres IDO module:
       exec { 'postgres_module_enable':
