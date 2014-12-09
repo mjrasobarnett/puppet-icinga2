@@ -29,8 +29,8 @@ object Host "<%= @object_hostname %>" {
   groups = [ <%- @groups.each do |group| -%> "<%= group %>", <%- end -%>]
   <%- end -%>
   <%- if @vars.empty? != true  -%>
-  <%- @vars.each_pair do |key, value| -%>
-  vars.<%= key %> = "<%= value %>"
+  <%- @vars.keys.sort.each do |key| -%>
+  vars.<%= key %> = "<%= @vars[key] %>"
   <%- end -%>
   <%- end -%>
   <%- if @disks -%>
