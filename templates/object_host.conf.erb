@@ -34,7 +34,7 @@ object Host "<%= @object_hostname %>" {
   <%- end -%>
   <%- end -%>
   <%- if @disks -%>
-    <%- @disks.sort.each_pair do |key, value| -%>
+    <%- @disks.each_pair do |key, value| -%>
   vars.disks["<%= key %>"] = {
     disk_partitions = [<% value.each do |elem| %> "<%= elem %>",<% end %>]
   }
