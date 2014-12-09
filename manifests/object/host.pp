@@ -17,6 +17,7 @@ define icinga2::object::host (
   $template_to_import = 'generic-host',
   $groups = [],
   $vars = {},
+  $disks = {},
   $check_command = undef,
   $max_check_attempts = undef,
   $check_period = undef,
